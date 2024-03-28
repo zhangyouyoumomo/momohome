@@ -7,5 +7,6 @@
 
 void dijkstra_stl(const AdjList& graph, int src);
 void dijkstra_binheap(const AdjList& graph, int src);
+void dijkstra_fibheap(const AdjList& graph, int src);
 
 #endif // DIJKSTRA_H
