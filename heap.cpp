@@ -14,20 +14,20 @@ int FibHeap::IsEmpty() {
 }
 void FibHeap::insert(Node node) {
 	FibNode* newNode = new FibNode(node);//new return an address
-	if (!this->H_min) {//is first node of fibheap
-		this->H_min = newNode;
-		this->H_min->left = this->H_min;//referenced to its self
-		this->H_min->right = this->H_min;
+	if (!H_min) {//is first node of fibheap
+		H_min = newNode;
+		H_min->left = H_min;//referenced to its self
+		H_min->right = H_min;
 	}
 	else {
-		newNode->left = this->H_min->left;
-		newNode->right = this->H_min;//insert before orignal H_min
-		H_min->left->right = newNode;
-		this->H_min->left = newNode;
+		newNode->left = H_min->left;
+		newNode->right = H_min;//insert before orignal H_min
+		H_min->left->right = newNode;/////////////////////////////
+		H_min->left = newNode;
 		//if (H_min->right == H_min)H_min->right = newNode;//two become circle
 		//else H_min->left->right = newNode;
-		if (this->H_min->Element.dist > newNode->Element.dist)//update the minium node
-			this->H_min = newNode;
+		if (H_min->Element.dist > newNode->Element.dist)//update the minium node
+			H_min = newNode;
 	}
 	this->H_num += 1;
 	vertexToaddress[node.vertex] = newNode;//add to map
@@ -42,8 +42,8 @@ void FibHeap::link(FibNode* y, FibNode* x) {
 	if (x->child) {//x has child
 		y->right = x->child;
 		y->left = x->child->left;
+		x->child->left->right = y;
 		x->child->left = y;
-		y->left->right = y;
 	}
 	else {
 		y->right = y;
@@ -72,7 +72,7 @@ FibNode* FibHeap::remove_min() {
 
 void FibHeap::CONSOLIDATE() {
 	int maxDegree = floor(log2(this->H_num));
-	vector<FibNode*>A(maxDegree + 1, nullptr);//index is degree,element is FibNode
+	vector<FibNode*>A(maxDegree + 2, nullptr);//index is degree,element is FibNode
 	while (H_min) {//if all have from rootlist to A,break
 		FibNode* x = remove_min();
 		int d = x->degree;
@@ -90,18 +90,18 @@ void FibHeap::CONSOLIDATE() {
 		A[d] = x;//find empty place
 	}
 	//this->H_min = nullptr;//forget old rootlist
-	for (int i = 0; i < maxDegree + 1; i++) {//reconstruct rootlist
+	for (int i = 0; i < maxDegree + 2; i++) {//reconstruct rootlist
 		if (A[i]) {
-			if (this->H_min == nullptr) {
-				this->H_min = A[i];
+			if (H_min == nullptr) {
+				H_min = A[i];
 			}
 			else {
-				A[i]->left = this->H_min->left;
-				A[i]->right = this->H_min;
+				A[i]->left = H_min->left;
+				A[i]->right = H_min;
 				H_min->left->right = A[i];
-				this->H_min->left = A[i];
-				if (A[i]->Element.dist < this->H_min->Element.dist)
-					this->H_min = A[i];//update minium
+				H_min->left = A[i];
+				if (A[i]->Element.dist < H_min->Element.dist)
+					H_min = A[i];//update minium
 			}
 		}
 	}
@@ -137,6 +137,7 @@ Node FibHeap::DeleteMin() {
 		this->H_num -= 1;
 		Node re(delNode->Element.vertex, delNode->Element.dist);
 		delete delNode;//because comes from new
+		delNode = NULL;
 		return re;
 	}
 	//empty heap
@@ -152,19 +153,24 @@ void FibHeap::decrease_key(Node node) {
 		CUT(x, y);
 		Cascading_CUT(y);
 	}
-	if (x->Element.dist < this->H_min->Element.dist)
-		this->H_min = x;
+	if (x->Element.dist < H_min->Element.dist)
+		H_min = x;
 	return;
 }
 
 void FibHeap::CUT(FibNode* x, FibNode* y) {
-	if (y->child == x) {//x is first child of
-		y->child = x->right;
+	if (y->child == x) {//x is first child of y
+		if (x == x->right)//sigle child
+			y->child = NULL;
+		else
+			y->child = x->right;
 	}
+	y->degree--;
 	x->left->right = x->right;
 	x->right->left = x->left;//cut from old postion
-	x->left = this->H_min->left;
-	x->right = this->H_min;
+	x->left = H_min->left;
+	x->right = H_min;
+	H_min->left->right = x;
 	this->H_min->left = x;//add x to root list
 	x->p = NULL;
 	x->mark = false;
@@ -269,7 +275,7 @@ Node BinQueue::DeleteMin() {
 	}
 
 	int MinTree = -1;
-	int MinItem = Infinity;
+	int MinItem = INT_MAX;
 	int Min_vertex = -1; // Added to hold the correct index of min element
 
 	// Step 1: Find the smallest item

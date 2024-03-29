@@ -5,15 +5,15 @@
 #include <chrono>
 
 int main() {
-	//std::string graphFile = "USA-road-d.NY.gr";
-	std::string graphFile = "1.txt";
+	std::string graphFile = "USA-road-d.NY.gr";
+	//std::string graphFile = "1.txt";
 	AdjList graph;
 
 	if (!readGraph(graphFile, graph)) {
 		return 1;
 	}
 
-	int startNode = 0;
+	int startNode = 1;
 
 	std::cout << "Using Min Heap:" << std::endl;
 	auto start = std::chrono::high_resolution_clock::now();

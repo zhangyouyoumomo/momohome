@@ -7,13 +7,12 @@
 #include <unordered_map>
 
 #define MaxTrees 18
-#define Capacity 262144 // Example capacity, adjust as necessary
-#define Infinity std::numeric_limits<int>::max()
+#define Capacity 262144// Example capacity, adjust as necessary
 
 using namespace std;
 struct Node {
 	int vertex, dist;
-	Node(int v = -1, int d = Infinity) : vertex(v), dist(d) {} // Default constructor adjusted for simplicity
+	Node(int v = -1, int d = INT_MAX) : vertex(v), dist(d) {} // Default constructor adjusted for simplicity
 };
 
 //FibHeap

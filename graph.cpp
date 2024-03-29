@@ -28,8 +28,7 @@ bool readGraph(const string& filepath, AdjList& graph) {
 			istringstream iss(line);
 			char arc;
 			iss >> arc >> from >> to >> weight;
-			graph[from].push_back(Edge(to, weight)); // Assuming undirected graph
-			graph[to].push_back(Edge(from, weight));
+			graph[from].push_back(Edge(to, weight)); // Assuming directed graph
 		}
 	}
 

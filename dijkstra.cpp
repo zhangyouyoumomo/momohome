@@ -52,8 +52,8 @@ void dijkstra_stl(const AdjList& graph, int src) {
 		*/
 	}
 
-	for (int i = 0; i < V; ++i)
-		if (dist[i] != Infinity)
+	for (int i = 0; i < 20; ++i)
+		if (dist[i] != INT_MAX)
 			cout << "Node " << i << ", Min Distance: " << dist[i] << endl;
 		else
 			cout << "Node " << i << ", Unreachable" << endl;
@@ -84,8 +84,8 @@ void dijkstra_binheap(const AdjList& graph, int src) {
 		}
 	}
 
-	for (int i = 0; i < V; ++i)
-		if (dist[i] != Infinity)
+	for (int i = 0; i < 20; ++i)
+		if (dist[i] != INT_MAX)
 			cout << "Node " << i << ", Min Distance: " << dist[i] << endl;
 		else
 			cout << "Node " << i << ", Unreachable" << endl;
@@ -130,8 +130,8 @@ void dijkstra_fibheap(const AdjList& graph, int src) {
 		*/
 	}
 
-	for (int i = 0; i < V; ++i)
-		if (dist[i] != Infinity)
+	for (int i = 0; i < 20; ++i)
+		if (dist[i] != INT_MAX)
 			cout << "Node " << i << ", Min Distance: " << dist[i] << endl;
 		else
 			cout << "Node " << i << ", Unreachable" << endl;
