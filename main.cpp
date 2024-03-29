@@ -34,7 +34,7 @@ int main() {
 	dijkstra_fibheap(graph, startNode);
 	end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double, std::milli> fib_duration = end - start;
-	std::cout << "Fib Heap Dijkstra Execution Time: " << bin_duration.count() << "ms\n" << std::endl;
+	std::cout << "Fib Heap Dijkstra Execution Time: " << fib_duration.count() << "ms\n" << std::endl;
 
 	return 0;
 }

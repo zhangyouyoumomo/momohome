@@ -2,6 +2,7 @@
 #include "heap.h"
 #include <limits>
 #include <algorithm> //swap
+#include <cmath>  //for log2
 
 using namespace std;
 
@@ -9,10 +10,10 @@ using namespace std;
 FibNode::FibNode(Node element) :Element(element), p(nullptr), left(nullptr), right(nullptr), child(nullptr), degree(0), mark(false) {}
 FibHeap::FibHeap() :H_min(nullptr), H_num(0) {}
 int FibHeap::IsEmpty() {
-	return (this->H_num);
+	return (this->H_num == 0);
 }
 void FibHeap::insert(Node node) {
-	FibNode* newNode = new FibNode(node);//this指针应该能修改叭
+	FibNode* newNode = new FibNode(node);//new return an address
 	if (!this->H_min) {//is first node of fibheap
 		this->H_min = newNode;
 		this->H_min->left = this->H_min;//referenced to its self
@@ -21,32 +22,59 @@ void FibHeap::insert(Node node) {
 	else {
 		newNode->left = this->H_min->left;
 		newNode->right = this->H_min;//insert before orignal H_min
+		H_min->left->right = newNode;
 		this->H_min->left = newNode;
-		if (this->H_min->Element.dist > newNode->Element.dist)
+		//if (H_min->right == H_min)H_min->right = newNode;//two become circle
+		//else H_min->left->right = newNode;
+		if (this->H_min->Element.dist > newNode->Element.dist)//update the minium node
 			this->H_min = newNode;
 	}
 	this->H_num += 1;
-	vertexToaddress[node.vertex] = newNode;
+	vertexToaddress[node.vertex] = newNode;//add to map
 	return;
 }
 
 void FibHeap::link(FibNode* y, FibNode* x) {
-	//y一定不是单节点？
-	y->left = y->right;
-	y->right = y->left;
+	//y一定不是单节点？//至少自己是环
+	y->left->right = y->right;//out of rootlist
+	y->right->left = y->left;
+	//put y into x's childlist
+	if (x->child) {//x has child
+		y->right = x->child;
+		y->left = x->child->left;
+		x->child->left = y;
+		y->left->right = y;
+	}
+	else {
+		y->right = y;
+		y->left = y;
+	}
 	x->child = y;
 	x->degree++;
 	y->p = x;
 	y->mark = false;
 }
 
+FibNode* FibHeap::remove_min() {
+	FibNode* min = H_min;
+	if (H_min == H_min->right) {//only one
+		H_min = nullptr;
+	}
+	else {
+		H_min->left->right = H_min->right;//delete in rootlist,not phyisic
+		H_min->right->left = H_min->left;
+		H_min = H_min->right;
+	}
+	min->left = min;
+	min->right = min;//min修改和H_min修改的是一个东西！
+	return min;
+}
+
 void FibHeap::CONSOLIDATE() {
-	vector<FibNode*>A;//index is degree,element is FibNode
-	for (int i = 0; i < this->H_num; i++)
-		A[i] = nullptr;
-	FibNode* tem = this->H_min;
-	while (true) {
-		FibNode* x = tem;
+	int maxDegree = floor(log2(this->H_num));
+	vector<FibNode*>A(maxDegree + 1, nullptr);//index is degree,element is FibNode
+	while (H_min) {//if all have from rootlist to A,break
+		FibNode* x = remove_min();
 		int d = x->degree;
 		while (A[d]) {// this degree level has another
 			FibNode* y = A[d];
@@ -55,13 +83,14 @@ void FibHeap::CONSOLIDATE() {
 				x = y;
 				y = t;
 			}
-			link(y, x);//link big to small
+			link(y, x);//link big to small,tem is small,y to x
+			A[d] = nullptr;
 			d++;//check next if has another
 		}
 		A[d] = x;//find empty place
 	}
-	this->H_min = nullptr;
-	for (int i = 0; i < this->H_num; i++) {
+	//this->H_min = nullptr;//forget old rootlist
+	for (int i = 0; i < maxDegree + 1; i++) {//reconstruct rootlist
 		if (A[i]) {
 			if (this->H_min == nullptr) {
 				this->H_min = A[i];
@@ -69,6 +98,7 @@ void FibHeap::CONSOLIDATE() {
 			else {
 				A[i]->left = this->H_min->left;
 				A[i]->right = this->H_min;
+				H_min->left->right = A[i];
 				this->H_min->left = A[i];
 				if (A[i]->Element.dist < this->H_min->Element.dist)
 					this->H_min = A[i];//update minium
@@ -82,33 +112,41 @@ Node FibHeap::DeleteMin() {
 	FibNode* delNode = this->H_min;//the node tobe deleted
 	if (delNode) {
 		FibNode* Child = delNode->child;
-		while (Child) {//put delnode's children to H
-			Child->p = delNode->p;
-			Child->left = delNode->left;
+		while (Child) {//put all delnode's children to H's rootlist
+			FibNode* tem = Child->right;
+			Child->p = nullptr;
+			Child->left = delNode->left;//insert before delNode
 			Child->right = delNode;
+			delNode->left->right = Child;
 			delNode->left = Child;
-			Child = Child->right;
+			if (tem->Element.vertex == delNode->child->Element.vertex) {
+				break;//finish circle
+			}
+			Child = tem;
 		}
-		//remove from list
-		delNode->right = delNode->left;
-		delNode->left = delNode->right;
-		if (delNode == delNode->right) {//don't have silbings ,empty now
+		//remove from root list
+		delNode->right->left = delNode->left;
+		delNode->left->right = delNode->right;
+		if (delNode == delNode->right) {//don't have silbings and children ,empty now
 			this->H_min = nullptr;
 		}
 		else {
 			this->H_min = delNode->right;
-			CONSOLIDATE();
+			this->CONSOLIDATE();//reshape
 		}
 		this->H_num -= 1;
-		return Node(delNode->Element.vertex, delNode->Element.vertex);
+		Node re(delNode->Element.vertex, delNode->Element.dist);
+		delete delNode;//because comes from new
+		return re;
 	}
+	//empty heap
 	return Node(-1, -1);
 }
 
 void FibHeap::decrease_key(Node node) {
 	int k = node.dist;
 	FibNode* x = vertexToaddress[node.vertex];
-	x->Element.dist = k;
+	x->Element.dist = k;//decrease key
 	FibNode* y = x->p;
 	if (y && x->Element.dist < y->Element.dist) {//x<y cause problem
 		CUT(x, y);
@@ -124,10 +162,10 @@ void FibHeap::CUT(FibNode* x, FibNode* y) {
 		y->child = x->right;
 	}
 	x->left->right = x->right;
-	x->right->left = x->left;
+	x->right->left = x->left;//cut from old postion
 	x->left = this->H_min->left;
 	x->right = this->H_min;
-	this->H_min->left = x;
+	this->H_min->left = x;//add x to root list
 	x->p = NULL;
 	x->mark = false;
 	return;
@@ -138,7 +176,7 @@ void FibHeap::Cascading_CUT(FibNode* y) {
 	if (z) {
 		if (y->mark == false)//first cut
 			y->mark = true;
-		else {//already cut once
+		else {//already cut once,forbid keep degenerate
 			CUT(y, z);
 			Cascading_CUT(z);
 		}

@@ -41,7 +41,7 @@ void dijkstra_stl(const AdjList& graph, int src) {
 				}
 			}
 		}
-		/*debug
+		/*
 		cout << node.vertex << endl;
 		for (const auto& j : dist) {
 			if (j > 10)cout << "#";
@@ -94,7 +94,6 @@ void dijkstra_binheap(const AdjList& graph, int src) {
 void dijkstra_fibheap(const AdjList& graph, int src) {
 	int V = graph.size();
 	vector<int> dist(V, INT_MAX);
-	//BinQueue pq;
 	FibHeap pq;
 	dist[src] = 0;
 	pq.insert(Node(src, 0));
@@ -104,16 +103,31 @@ void dijkstra_fibheap(const AdjList& graph, int src) {
 		int u = u_node.vertex;
 		if (u == -1) break; // Check for an error node
 
-		if (dist[u] < u_node.dist) continue;  // Check for an outdated queue entry
+		//if (dist[u] < u_node.dist) continue;  // Check for an outdated queue entry
 
 		for (const auto& i : graph[u]) {
 			int v = i.to;
 			int weight = i.weight;
-			if (dist[u] < INT_MAX && dist[v] > dist[u] + weight) {
-				dist[v] = dist[u] + weight;
-				pq.decrease_key(Node(v, dist[v]));
+			if (dist[v] > dist[u] + weight) {
+				if (dist[v] == INT_MAX) {
+					dist[v] = dist[u] + weight;
+					pq.insert(Node(v, dist[v]));
+				}
+				else {
+					dist[v] = dist[u] + weight;
+					pq.decrease_key(Node(v, dist[v]));
+				}
 			}
 		}
+		/*
+		cout << u_node.vertex << endl;
+		for (const auto& j : dist) {
+			if (j > 10)cout << "#";
+			else
+				cout << j;
+		}
+		cout << endl;
+		*/
 	}
 
 	for (int i = 0; i < V; ++i)

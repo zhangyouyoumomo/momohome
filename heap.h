@@ -42,6 +42,7 @@ public:
 	void CUT(FibNode* x, FibNode* y);
 	void Cascading_CUT(FibNode* y);
 	int IsEmpty();
+	FibNode* remove_min();
 	std::unordered_map<int, FibNode*> vertexToaddress; // 顶点到堆中索引的映射
 };
 
